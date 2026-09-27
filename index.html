@@ -1,0 +1,3196 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Una noche para ti</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+        html,
+        body {
+            margin: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background: #02030a;
+            font-family: Georgia, "Times New Roman", serif;
+        }
+        body {
+            user-select: none;
+        }
+        canvas {
+            display: block;
+        }
+        #app {
+            position: fixed;
+            inset: 0;
+        }
+        #intro {
+            position: fixed;
+            inset: 0;
+            z-index: 50;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            color: white;
+            background:
+                radial-gradient(
+                    circle at center,
+                    rgba(34, 18, 55, 0.45),
+                    rgba(2, 3, 10, 0.72)
+                );
+            backdrop-filter: blur(4px);
+            pointer-events: none;
+            transition:
+                opacity 2s ease,
+                visibility 2s ease;
+        }
+        #intro.oculto {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+        #intro h1 {
+            margin: 0;
+            font-size:
+                clamp(36px, 6vw, 75px);
+            font-weight: normal;
+            letter-spacing: 6px;
+            color: #fff4d0;
+            text-shadow:
+                0 0 12px rgba(255, 255, 255, 0.7),
+                0 0 35px rgba(255, 215, 140, 0.5),
+                0 0 70px rgba(255, 150, 210, 0.25);
+        }
+        #intro p {
+            margin-top: 20px;
+            font-size:
+                clamp(14px, 2vw, 20px);
+            letter-spacing: 4px;
+            color: #eadff8;
+            animation:
+                respirar 3s ease-in-out infinite;
+        }
+        @keyframes respirar {
+            0%,
+            100% {
+                opacity: 0.45;
+                transform: scale(0.98);
+            }
+            50% {
+                opacity: 1;
+                transform: scale(1.03);
+            }
+        }
+        #estrellaBoton {
+            position: fixed;
+            left: 50%;
+            bottom: 7%;
+            transform: translateX(-50%);
+            width: 75px;
+            height: 75px;
+            border: 0;
+            padding: 0;
+            background: transparent;
+            cursor: pointer;
+            z-index: 20;
+            opacity: 0;
+            pointer-events: none;
+            transition:
+                opacity 1.5s ease,
+                transform 0.35s ease;
+        }
+        #estrellaBoton.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        #estrellaBoton::before {
+            content: "";
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            width: 14px;
+            height: 14px;
+            transform: translate(-50%, -50%);
+            background: white;
+            border-radius: 50%;
+            box-shadow:
+                0 0 10px white,
+                0 0 25px #ffd7ee,
+                0 0 50px #ff7ec5,
+                0 0 85px rgba(255, 100, 190, 0.7);
+        }
+        #estrellaBoton::after {
+            content: "✦";
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 43px;
+            text-shadow:
+                0 0 8px white,
+                0 0 20px #ffb8df,
+                0 0 40px #ff6fc1;
+        }
+        #estrellaBoton:hover {
+            transform:
+                translateX(-50%)
+                scale(1.18);
+        }
+        #estrellaBoton.pulsando {
+            animation:
+                pulsar 0.55s ease;
+        }
+        @keyframes pulsar {
+            50% {
+                transform:
+                    translateX(-50%)
+                    scale(1.4);
+            }
+        }
+        #mensaje {
+            position: fixed;
+            left: 50%;
+            top: 11%;
+            width: min(680px, 82vw);
+            transform:
+                translate(-50%, -20px)
+                scale(0.96);
+            z-index: 18;
+            opacity: 0;
+            pointer-events: none;
+            transition:
+                opacity 1s ease,
+                transform 1s ease;
+        }
+        #mensaje.visible {
+            opacity: 1;
+            transform:
+                translate(-50%, 0)
+                scale(1);
+        }
+        .marco {
+            position: relative;
+            padding:
+                30px
+                48px;
+            border-radius: 28px;
+            background:
+                linear-gradient(
+                    135deg,
+                    rgba(25, 15, 39, 0.72),
+                    rgba(7, 7, 20, 0.5)
+                );
+            border:
+                1px solid
+                rgba(255, 220, 170, 0.28);
+            backdrop-filter:
+                blur(18px);
+            box-shadow:
+                0 20px 70px rgba(0, 0, 0, 0.55),
+                inset 0 1px 0 rgba(255, 255, 255, 0.12),
+                0 0 40px rgba(255, 150, 210, 0.08);
+        }
+        #textoFrase {
+            color: #fff8ea;
+            font-size:
+                clamp(18px, 2.3vw, 27px);
+            line-height: 1.55;
+            text-align: center;
+            text-shadow:
+                0 2px 15px rgba(0, 0, 0, 0.8);
+        }
+        .estrellaMarco {
+            position: absolute;
+            color: #ffd7ee;
+            font-size: 13px;
+            text-shadow:
+                0 0 8px white,
+                0 0 18px #ff8aca;
+            animation:
+                parpadear 2s infinite alternate;
+        }
+        .e1 {
+            left: 8%;
+            top: 13%;
+        }
+        .e2 {
+            right: 8%;
+            top: 13%;
+        }
+        .e3 {
+            left: 8%;
+            bottom: 13%;
+        }
+        .e4 {
+            right: 8%;
+            bottom: 13%;
+        }
+        @keyframes parpadear {
+            from {
+                opacity: 0.35;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+        #contador {
+            position: fixed;
+            right: 22px;
+            bottom: 20px;
+            z-index: 20;
+            color:
+                rgba(255, 255, 255, 0.5);
+            font-size: 11px;
+            letter-spacing: 2px;
+            opacity: 0;
+            transition:
+                opacity 1s;
+        }
+        #contador.visible {
+            opacity: 1;
+        }
+        #final {
+            position: fixed;
+            inset: 0;
+            z-index: 30;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            pointer-events: none;
+            opacity: 0;
+            transition:
+                opacity 3s ease;
+            background:
+                radial-gradient(
+                    circle at center,
+                    rgba(80, 15, 70, 0.08),
+                    rgba(2, 3, 10, 0.25)
+                );
+        }
+        #final.visible {
+            opacity: 1;
+        }
+        #textoFinal {
+            position: absolute;
+            top: 63%;
+            color: white;
+            font-size:
+                clamp(35px, 7vw, 82px);
+            letter-spacing: 9px;
+            text-shadow:
+                0 0 10px white,
+                0 0 25px #ffb2df,
+                0 0 60px #ff65bd;
+            opacity: 0;
+            transition:
+                opacity 2.5s ease 1.5s;
+        }
+        #final.visible #textoFinal {
+            opacity: 1;
+        }
+    </style>
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js"
+        }
+    }
+    </script>
+</head>
+<body>
+<div id="app"></div>
+<audio id="musicaPersonal" src="music.mp3" loop preload="auto"></audio>
+<div id="intro">
+    <h1>Una noche para ti</h1>
+    <p>Haz clic en la Tierra</p>
+</div>
+<button
+    id="estrellaBoton"
+    aria-label="Continuar">
+</button>
+<div id="mensaje">
+    <div class="marco">
+        <span class="estrellaMarco e1">✦</span>
+        <span class="estrellaMarco e2">✦</span>
+        <span class="estrellaMarco e3">✦</span>
+        <span class="estrellaMarco e4">✦</span>
+        <div id="textoFrase"></div>
+    </div>
+</div>
+<div id="contador"></div>
+<div id="final">
+    <div id="textoFinal">
+        TE AMO
+    </div>
+</div>
+<script type="module">
+import * as THREE from "three";
+const frases = [
+    "Desde que llegaste a mi vida, todo tiene un poquito más de luz.",
+    "Si pudiera guardar un momento para siempre, elegiría uno contigo.",
+    "Hay noches bonitas, pero esta noche quería compartirla contigo.",
+    "Gracias por cada sonrisa, cada momento y cada recuerdo.",
+    "Ojalá pudiera regalarte todas las estrellas que veo esta noche.",
+    "Este pequeño lugar existe solamente para recordarte lo especial que eres.",
+    "Entre millones de personas, qué bonito haber coincidido contigo.",
+    "Que esta noche te recuerde cuánto te quiero.",
+    "Si miras al cielo, quizá encuentres una pequeña sorpresa.",
+    "Y entre todas estas flores, siempre habría una razón para pensar en ti."
+];
+let indiceFrase = 0;
+let iniciado = false;
+let finalIniciado = false;
+const intro =
+    document.getElementById("intro");
+const botonEstrella =
+    document.getElementById("estrellaBoton");
+const mensaje =
+    document.getElementById("mensaje");
+const textoFrase =
+    document.getElementById("textoFrase");
+const contador =
+    document.getElementById("contador");
+const final =
+    document.getElementById("final");
+const musicaPersonal =
+    document.getElementById("musicaPersonal");
+const scene =
+    new THREE.Scene();
+scene.background =
+    new THREE.Color(0x050414);
+scene.fog =
+    new THREE.FogExp2(
+        0x17132d,
+        0.015
+    );
+const veloJardin = new THREE.Mesh(
+    new THREE.PlaneGeometry(35, 22),
+    new THREE.MeshBasicMaterial({
+        color: 0x020108,
+        transparent: true,
+        opacity: 0.98,
+        depthWrite: false
+    })
+);
+veloJardin.position.set(0, 3, -3.65);
+veloJardin.renderOrder = 20;
+veloJardin.material.depthTest = true;
+scene.add(veloJardin);
+const camera =
+    new THREE.PerspectiveCamera(
+        55,
+        window.innerWidth /
+        window.innerHeight,
+        0.1,
+        1000
+    );
+camera.position.set(
+    0,
+    2.2,
+    11
+);
+camera.lookAt(
+    0,
+    2.2,
+    -3.5
+);
+const renderer =
+    new THREE.WebGLRenderer({
+        antialias: true,
+        powerPreference:
+            "high-performance"
+    });
+renderer.setSize(
+    window.innerWidth,
+    window.innerHeight
+);
+renderer.setPixelRatio(
+    Math.min(
+        window.devicePixelRatio,
+        1.6
+    )
+);
+renderer.outputColorSpace =
+    THREE.SRGBColorSpace;
+renderer.toneMapping =
+    THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure =
+    1.35;
+document
+    .getElementById("app")
+    .appendChild(
+        renderer.domElement
+    );
+const cieloGeo =
+    new THREE.SphereGeometry(
+        300,
+        32,
+        24
+    );
+const cieloMat =
+    new THREE.ShaderMaterial({
+        side:
+            THREE.BackSide,
+        uniforms: {
+            topColor: {
+                value:
+                    new THREE.Color(
+                        0x010713
+                    )
+            },
+            middleColor: {
+                value:
+                    new THREE.Color(
+                        0x07172c
+                    )
+            },
+            horizonColor: {
+                value:
+                    new THREE.Color(
+                        0x273454
+                    )
+            }
+        },
+        vertexShader: `
+            varying vec3 vWorldPosition;
+            void main() {
+                vec4 worldPosition =
+                    modelMatrix *
+                    vec4(position, 1.0);
+                vWorldPosition =
+                    worldPosition.xyz;
+                gl_Position =
+                    projectionMatrix *
+                    viewMatrix *
+                    worldPosition;
+            }
+        `,
+        fragmentShader: `
+            uniform vec3 topColor;
+            uniform vec3 middleColor;
+            uniform vec3 horizonColor;
+            varying vec3 vWorldPosition;
+
+            float hash(vec3 p) {
+                p = fract(p * 0.3183099 + vec3(0.1, 0.2, 0.3));
+                p *= 17.0;
+                return fract(
+                    p.x * p.y * p.z *
+                    (p.x + p.y + p.z)
+                );
+            }
+
+            void main() {
+                vec3 direction =
+                    normalize(vWorldPosition);
+                float h =
+                    direction.y;
+
+                vec3 color =
+                    mix(
+                        horizonColor,
+                        middleColor,
+                        smoothstep(
+                            -0.10,
+                            0.32,
+                            h
+                        )
+                    );
+
+                color =
+                    mix(
+                        color,
+                        topColor,
+                        smoothstep(
+                            0.20,
+                            0.88,
+                            h
+                        )
+                    );
+
+                float horizonGlow =
+                    pow(
+                        max(
+                            0.0,
+                            1.0 - abs(h)
+                        ),
+                        7.0
+                    ) * 0.045;
+
+                color +=
+                    vec3(
+                        0.16,
+                        0.20,
+                        0.30
+                    ) *
+                    horizonGlow;
+
+                float starBand =
+                    smoothstep(
+                        0.08,
+                        0.34,
+                        h
+                    ) *
+                    (1.0 - smoothstep(
+                        0.45,
+                        0.82,
+                        h
+                    ));
+
+                float stars =
+                    step(
+                        0.997,
+                        hash(
+                            floor(
+                                direction *
+                                170.0
+                            )
+                        )
+                    );
+
+                float starSoft =
+                    hash(
+                        floor(
+                            direction *
+                            170.0 +
+                            13.7
+                        )
+                    );
+
+                color +=
+                    vec3(
+                        0.48,
+                        0.55,
+                        0.72
+                    ) *
+                    stars *
+                    starBand *
+                    (0.35 + starSoft * 0.65);
+
+                gl_FragColor =
+                    vec4(
+                        color,
+                        1.0
+                    );
+            }
+        `
+    });
+const cielo =
+    new THREE.Mesh(
+        cieloGeo,
+        cieloMat
+    );
+scene.add(
+    cielo
+);
+const luzLuna =
+    new THREE.DirectionalLight(
+        0xdbe4ff,
+        2.4
+    );
+luzLuna.position.set(
+    -25,
+    35,
+    15
+);
+scene.add(
+    luzLuna
+);
+const luzLunarSuelo =
+    new THREE.PointLight(
+        0xbfcfff,
+        2.2,
+        65
+    );
+luzLunarSuelo.position.set(
+    -15,
+    12,
+    -45
+);
+scene.add(
+    luzLunarSuelo
+);
+const ambiente =
+    new THREE.HemisphereLight(
+        0x777fd0,
+        0x0c120b,
+        1.15
+    );
+scene.add(
+    ambiente
+);
+const luzCalida =
+    new THREE.PointLight(
+        0xffa7d6,
+        2.2,
+        20
+    );
+luzCalida.position.set(
+    0,
+    3,
+    -3
+);
+scene.add(
+    luzCalida
+);
+function crearEstrellas() {
+    const cantidad = 4200;
+    const posiciones =
+        new Float32Array(
+            cantidad * 3
+        );
+    const colores =
+        new Float32Array(
+            cantidad * 3
+        );
+    for (
+        let i = 0;
+        i < cantidad;
+        i++
+    ) {
+        const i3 =
+            i * 3;
+        const radio =
+            110 +
+            Math.random() * 190;
+        const theta =
+            Math.random() *
+            Math.PI * 2;
+        const phi =
+            Math.random() *
+            Math.PI * 0.56;
+        posiciones[i3] =
+            Math.sin(phi) *
+            Math.cos(theta) *
+            radio;
+        posiciones[i3 + 1] =
+            Math.cos(phi) *
+            radio;
+        posiciones[i3 + 2] =
+            Math.sin(phi) *
+            Math.sin(theta) *
+            radio;
+        const tipo =
+            Math.random();
+        let r;
+        let g;
+        let b;
+        if (
+            tipo < 0.72
+        ) {
+            r = 0.95;
+            g = 0.97;
+            b = 1.0;
+        } else if (
+            tipo < 0.88
+        ) {
+            r = 0.75;
+            g = 0.85;
+            b = 1.0;
+        } else {
+            r = 1.0;
+            g = 0.91;
+            b = 0.72;
+        }
+        const brillo =
+            0.45 +
+            Math.random() * 0.55;
+        colores[i3] =
+            r * brillo;
+        colores[i3 + 1] =
+            g * brillo;
+        colores[i3 + 2] =
+            b * brillo;
+    }
+    const geo =
+        new THREE.BufferGeometry();
+    geo.setAttribute(
+        "position",
+        new THREE.BufferAttribute(
+            posiciones,
+            3
+        )
+    );
+    geo.setAttribute(
+        "color",
+        new THREE.BufferAttribute(
+            colores,
+            3
+        )
+    );
+    const mat =
+        new THREE.PointsMaterial({
+            size:
+                0.25,
+            vertexColors:
+                true,
+            transparent:
+                true,
+            opacity:
+                0.94,
+            depthWrite:
+                false,
+            blending:
+                THREE.AdditiveBlending
+        });
+    return new THREE.Points(
+        geo,
+        mat
+    );
+}
+const estrellas =
+    crearEstrellas();
+scene.add(
+    estrellas
+);
+function crearEstrellasGrandes() {
+    const grupo =
+        new THREE.Group();
+    for (
+        let i = 0;
+        i < 170;
+        i++
+    ) {
+        const estrella =
+            new THREE.Mesh(
+                new THREE.SphereGeometry(
+                    0.045 +
+                    Math.random() * 0.055,
+                    6,
+                    6
+                ),
+                new THREE.MeshBasicMaterial({
+                    color:
+                        Math.random() > 0.85
+                            ? 0xfff0bd
+                            : 0xffffff,
+                    transparent:
+                        true,
+                    opacity:
+                        0.55 +
+                        Math.random() * 0.45,
+                    depthWrite:
+                        false,
+                    blending:
+                        THREE.AdditiveBlending
+                })
+            );
+        const radio =
+            90 +
+            Math.random() * 150;
+        const theta =
+            Math.random() *
+            Math.PI * 2;
+        const phi =
+            Math.random() *
+            Math.PI * 0.48;
+        estrella.position.set(
+            Math.sin(phi) *
+            Math.cos(theta) *
+            radio,
+            Math.cos(phi) *
+            radio,
+            Math.sin(phi) *
+            Math.sin(theta) *
+            radio
+        );
+        estrella.userData.fase =
+            Math.random() *
+            Math.PI *
+            2;
+        estrella.userData.velocidad =
+            0.4 +
+            Math.random() * 1.2;
+        grupo.add(
+            estrella
+        );
+    }
+    scene.add(
+        grupo
+    );
+    return grupo;
+}
+const estrellasGrandes =
+    crearEstrellasGrandes();
+const lunaGrupo =
+    new THREE.Group();
+lunaGrupo.position.set(
+    -18,
+    19,
+    -65
+);
+scene.add(
+    lunaGrupo
+);
+function crearTexturaLuna() {
+    const canvas =
+        document.createElement("canvas");
+    canvas.width = 512;
+    canvas.height = 256;
+    const ctx =
+        canvas.getContext("2d");
+
+    const base =
+        ctx.createLinearGradient(
+            0,
+            0,
+            0,
+            canvas.height
+        );
+    base.addColorStop(
+        0,
+        "#d8d9d4"
+    );
+    base.addColorStop(
+        0.5,
+        "#bfc1bd"
+    );
+    base.addColorStop(
+        1,
+        "#8f928e"
+    );
+    ctx.fillStyle = base;
+    ctx.fillRect(
+        0,
+        0,
+        canvas.width,
+        canvas.height
+    );
+
+    for (let i = 0; i < 170; i++) {
+        const x =
+            Math.random() *
+            canvas.width;
+        const y =
+            Math.random() *
+            canvas.height;
+        const r =
+            2 +
+            Math.random() * 15;
+
+        ctx.beginPath();
+        ctx.arc(
+            x,
+            y,
+            r,
+            0,
+            Math.PI * 2
+        );
+        ctx.fillStyle =
+            Math.random() > 0.48
+                ? "rgba(70,72,70,0.18)"
+                : "rgba(245,246,241,0.13)";
+        ctx.fill();
+
+        if (r > 5) {
+            ctx.beginPath();
+            ctx.arc(
+                x - r * 0.18,
+                y - r * 0.18,
+                r * 0.72,
+                0,
+                Math.PI * 2
+            );
+            ctx.strokeStyle =
+                "rgba(245,246,241,0.12)";
+            ctx.lineWidth = 1.2;
+            ctx.stroke();
+        }
+    }
+
+    const textura =
+        new THREE.CanvasTexture(
+            canvas
+        );
+    textura.colorSpace =
+        THREE.SRGBColorSpace;
+    return textura;
+}
+
+const texturaLuna =
+    crearTexturaLuna();
+
+const luna =
+    new THREE.Mesh(
+        new THREE.SphereGeometry(
+            6.5,
+            64,
+            64
+        ),
+        new THREE.MeshStandardMaterial({
+            map:
+                texturaLuna,
+            bumpMap:
+                texturaLuna,
+            bumpScale:
+                0.16,
+            color:
+                0xe0e0dc,
+            emissive:
+                0x151a27,
+            emissiveIntensity:
+                0.16,
+            roughness:
+                0.96
+        })
+    );
+lunaGrupo.add(
+    luna
+);
+for (
+    let i = 0;
+    i < 3;
+    i++
+) {
+    const halo =
+        new THREE.Mesh(
+            new THREE.SphereGeometry(
+                7.5 + i * 2,
+                32,
+                32
+            ),
+            new THREE.MeshBasicMaterial({
+                color:
+                    0xaebaff,
+                transparent:
+                    true,
+                opacity:
+                    0.075 / (i + 1),
+                side:
+                    THREE.BackSide,
+                blending:
+                    THREE.AdditiveBlending,
+                depthWrite:
+                    false
+            })
+        );
+    lunaGrupo.add(
+        halo
+    );
+}
+const tierraGrupo =
+    new THREE.Group();
+scene.add(
+    tierraGrupo
+);
+tierraGrupo.position.set(
+    0,
+    2.2,
+    -3.5
+);
+tierraGrupo.visible = true;
+const loader =
+    new THREE.TextureLoader();
+const materialTierra =
+    new THREE.MeshPhongMaterial({
+        color:
+            0xffffff,
+        shininess:
+            20
+    });
+const geometriaTierra =
+    new THREE.SphereGeometry(
+        3.8,
+        64,
+        64
+    );
+const tierra =
+    new THREE.Mesh(
+        geometriaTierra,
+        materialTierra
+    );
+tierra.name =
+    "Tierra";
+tierraGrupo.add(
+    tierra
+);
+loader.load(
+    "https://threejs.org/examples/textures/planets/earth_atmos_2048.jpg",
+    (textura) => {
+        textura.colorSpace =
+            THREE.SRGBColorSpace;
+        materialTierra.map =
+            textura;
+        materialTierra.needsUpdate =
+            true;
+    },
+    undefined,
+    () => {
+        materialTierra.color.set(
+            0x2b67c9
+        );
+        materialTierra.needsUpdate =
+            true;
+    }
+);
+loader.load(
+    "https://threejs.org/examples/textures/planets/earth_normal_2048.jpg",
+    (textura) => {
+        materialTierra.normalMap =
+            textura;
+        materialTierra.needsUpdate =
+            true;
+    }
+);
+loader.load(
+    "https://threejs.org/examples/textures/planets/earth_specular_2048.jpg",
+    (textura) => {
+        materialTierra.specularMap =
+            textura;
+        materialTierra.needsUpdate =
+            true;
+    }
+);
+const atmosfera =
+    new THREE.Mesh(
+        new THREE.SphereGeometry(
+            4.08,
+            64,
+            64
+        ),
+        new THREE.MeshBasicMaterial({
+            color:
+                0x6aa9ff,
+            transparent:
+                true,
+            opacity:
+                0.20,
+            side:
+                THREE.BackSide,
+            blending:
+                THREE.AdditiveBlending,
+            depthWrite:
+                false
+        })
+    );
+tierraGrupo.add(
+    atmosfera
+);
+const luzTierra =
+    new THREE.PointLight(
+        0xffffff,
+        18,
+        35
+    );
+luzTierra.position.set(
+    4,
+    5,
+    8
+);
+tierraGrupo.add(
+    luzTierra
+);
+const luzBordeTierra =
+    new THREE.PointLight(
+        0x5d9dff,
+        8,
+        25
+    );
+luzBordeTierra.position.set(
+    -5,
+    1,
+    -2
+);
+tierraGrupo.add(
+    luzBordeTierra
+);
+const raycaster =
+    new THREE.Raycaster();
+const mouse =
+    new THREE.Vector2();
+function comprobarClickTierra(
+    evento
+) {
+    if (
+        iniciado ||
+        entrando
+    ) {
+        return;
+    }
+    mouse.x =
+        (
+            evento.clientX /
+            window.innerWidth
+        ) * 2 - 1;
+    mouse.y =
+        -(
+            evento.clientY /
+            window.innerHeight
+        ) * 2 + 1;
+    raycaster.setFromCamera(
+        mouse,
+        camera
+    );
+    const intersecciones =
+        raycaster.intersectObject(
+            tierra,
+            false
+        );
+    if (
+        intersecciones.length > 0
+    ) {
+        iniciado = true;
+        iniciarAudio();
+        iniciarMusica();
+        intro.classList.add(
+            "oculto"
+        );
+        iniciarEntrada();
+    }
+}
+renderer.domElement.addEventListener(
+    "click",
+    comprobarClickTierra
+);
+renderer.domElement.addEventListener(
+    "mousemove",
+    (evento) => {
+        if (
+            iniciado ||
+            entrando
+        ) {
+            renderer.domElement.style.cursor =
+                "default";
+            return;
+        }
+        mouse.x =
+            (
+                evento.clientX /
+                window.innerWidth
+            ) * 2 - 1;
+        mouse.y =
+            -(
+                evento.clientY /
+                window.innerHeight
+            ) * 2 + 1;
+        raycaster.setFromCamera(
+            mouse,
+            camera
+        );
+        const intersecciones =
+            raycaster.intersectObject(
+                tierra,
+                false
+            );
+        renderer.domElement.style.cursor =
+            intersecciones.length > 0
+                ? "pointer"
+                : "default";
+    }
+);
+const canvasPasto =
+    document.createElement(
+        "canvas"
+    );
+canvasPasto.width =
+    1024;
+canvasPasto.height =
+    1024;
+const ctxPasto =
+    canvasPasto.getContext(
+        "2d"
+    );
+const gradPasto =
+    ctxPasto.createRadialGradient(
+        512,
+        400,
+        30,
+        512,
+        512,
+        760
+    );
+gradPasto.addColorStop(
+    0,
+    "#3c5d31"
+);
+gradPasto.addColorStop(
+    0.35,
+    "#294727"
+);
+gradPasto.addColorStop(
+    0.7,
+    "#18321f"
+);
+gradPasto.addColorStop(
+    1,
+    "#07160e"
+);
+ctxPasto.fillStyle =
+    gradPasto;
+ctxPasto.fillRect(
+    0,
+    0,
+    1024,
+    1024
+);
+for (
+    let i = 0;
+    i < 24000;
+    i++
+) {
+    const x =
+        Math.random() * 1024;
+    const y =
+        Math.random() * 1024;
+    const tamaño =
+        1 +
+        Math.random() * 3.5;
+    const verde =
+        Math.floor(
+            35 +
+            Math.random() * 60
+        );
+    ctxPasto.fillStyle =
+        `rgba(
+            ${8 + Math.random() * 18},
+            ${verde},
+            ${12 + Math.random() * 30},
+            ${0.14 + Math.random() * 0.30}
+        )`;
+    ctxPasto.fillRect(
+        x,
+        y,
+        tamaño,
+        tamaño
+    );
+}
+for (
+    let i = 0;
+    i < 3500;
+    i++
+) {
+    const x =
+        Math.random() * 1024;
+    const y =
+        Math.random() * 1024;
+    ctxPasto.beginPath();
+    ctxPasto.moveTo(
+        x,
+        y
+    );
+    ctxPasto.lineTo(
+        x +
+        (Math.random() - 0.5) * 5,
+        y -
+        3 -
+        Math.random() * 10
+    );
+    ctxPasto.strokeStyle =
+        `rgba(
+            ${55 + Math.random() * 45},
+            ${85 + Math.random() * 70},
+            ${35 + Math.random() * 35},
+            ${0.22 + Math.random() * 0.32}
+        )`;
+    ctxPasto.lineWidth =
+        0.5 +
+        Math.random() * 0.8;
+    ctxPasto.stroke();
+}
+const texturaPasto =
+    new THREE.CanvasTexture(
+        canvasPasto
+    );
+texturaPasto.wrapS =
+    THREE.RepeatWrapping;
+texturaPasto.wrapT =
+    THREE.RepeatWrapping;
+texturaPasto.repeat.set(
+    20,
+    20
+);
+texturaPasto.colorSpace =
+    THREE.SRGBColorSpace;
+const suelo =
+    new THREE.Mesh(
+        new THREE.PlaneGeometry(
+            150,
+            150
+        ),
+        new THREE.MeshStandardMaterial({
+            map:
+                texturaPasto,
+            color:
+                0x668052,
+            roughness:
+                1,
+            metalness:
+                0
+        })
+    );
+suelo.rotation.x =
+    -Math.PI / 2;
+suelo.position.y =
+    -0.05;
+suelo.position.z =
+    -10;
+scene.add(
+    suelo
+);
+function crearTexturaPetalo() {
+    const canvas =
+        document.createElement(
+            "canvas"
+        );
+    canvas.width =
+        512;
+    canvas.height =
+        512;
+    const ctx =
+        canvas.getContext(
+            "2d"
+        );
+    const grad =
+        ctx.createLinearGradient(
+            0,
+            512,
+            0,
+            0
+        );
+    grad.addColorStop(
+        0,
+        "#a97814"
+    );
+    grad.addColorStop(
+        0.25,
+        "#e9ae19"
+    );
+    grad.addColorStop(
+        0.65,
+        "#ffdf3d"
+    );
+    grad.addColorStop(
+        1,
+        "#fff69a"
+    );
+    ctx.fillStyle =
+        grad;
+    ctx.fillRect(
+        0,
+        0,
+        512,
+        512
+    );
+    for (
+        let i = 0;
+        i < 70;
+        i++
+    ) {
+        const x =
+            (i / 70) * 512;
+        ctx.beginPath();
+        ctx.moveTo(
+            x,
+            512
+        );
+        ctx.bezierCurveTo(
+            x +
+            (Math.random() - 0.5) * 35,
+            350,
+            x +
+            (Math.random() - 0.5) * 25,
+            150,
+            x +
+            (Math.random() - 0.5) * 12,
+            0
+        );
+        ctx.strokeStyle =
+            `rgba(
+                255,
+                255,
+                255,
+                ${0.035 + Math.random() * 0.1}
+            )`;
+        ctx.lineWidth =
+            0.8 +
+            Math.random() * 0.8;
+        ctx.stroke();
+    }
+    const brillo =
+        ctx.createRadialGradient(
+            256,
+            180,
+            10,
+            256,
+            180,
+            260
+        );
+    brillo.addColorStop(
+        0,
+        "rgba(255,255,210,.22)"
+    );
+    brillo.addColorStop(
+        1,
+        "rgba(255,255,210,0)"
+    );
+    ctx.fillStyle =
+        brillo;
+    ctx.fillRect(
+        0,
+        0,
+        512,
+        512
+    );
+    const textura =
+        new THREE.CanvasTexture(
+            canvas
+        );
+    textura.colorSpace =
+        THREE.SRGBColorSpace;
+    return textura;
+}
+const texturaPetalo =
+    crearTexturaPetalo();
+function crearTexturaHoja() {
+    const canvas =
+        document.createElement(
+            "canvas"
+        );
+    canvas.width =
+        256;
+    canvas.height =
+        512;
+    const ctx =
+        canvas.getContext(
+            "2d"
+        );
+    const grad =
+        ctx.createLinearGradient(
+            0,
+            512,
+            0,
+            0
+        );
+    grad.addColorStop(
+        0,
+        "#172d18"
+    );
+    grad.addColorStop(
+        0.5,
+        "#31572c"
+    );
+    grad.addColorStop(
+        1,
+        "#60824c"
+    );
+    ctx.fillStyle =
+        grad;
+    ctx.fillRect(
+        0,
+        0,
+        256,
+        512
+    );
+    for (
+        let i = 0;
+        i < 30;
+        i++
+    ) {
+        const x =
+            (i / 30) * 256;
+        ctx.beginPath();
+        ctx.moveTo(
+            x,
+            512
+        );
+        ctx.quadraticCurveTo(
+            x +
+            (Math.random() - 0.5) * 20,
+            240,
+            x +
+            (Math.random() - 0.5) * 12,
+            0
+        );
+        ctx.strokeStyle =
+            "rgba(210,245,190,.07)";
+        ctx.lineWidth =
+            1;
+        ctx.stroke();
+    }
+    const textura =
+        new THREE.CanvasTexture(
+            canvas
+        );
+    textura.colorSpace =
+        THREE.SRGBColorSpace;
+    return textura;
+}
+const texturaHoja =
+    crearTexturaHoja();
+function crearGeometriaPetalo() {
+    const geometria =
+        new THREE.PlaneGeometry(
+            0.48,
+            0.95,
+            10,
+            16
+        );
+    const pos =
+        geometria.attributes.position;
+    const uv =
+        geometria.attributes.uv;
+    for (
+        let i = 0;
+        i < pos.count;
+        i++
+    ) {
+        const u =
+            uv.getX(i);
+        const v =
+            uv.getY(i);
+        const curvatura =
+            Math.sin(
+                u * Math.PI
+            ) * 0.15;
+        const profundidad =
+            Math.sin(
+                v * Math.PI
+            ) * 0.13;
+        pos.setZ(
+            i,
+            curvatura +
+            profundidad
+        );
+        if (
+            v > 0.68
+        ) {
+            const factor =
+                1 -
+                (v - 0.68) * 1.9;
+            pos.setX(
+                i,
+                pos.getX(i) *
+                factor
+            );
+        }
+    }
+    geometria.computeVertexNormals();
+    geometria.translate(
+        0,
+        0.47,
+        0
+    );
+    return geometria;
+}
+const geometriaPetalo =
+    crearGeometriaPetalo();
+const materialPetalo =
+    new THREE.MeshStandardMaterial({
+        map:
+            texturaPetalo,
+        color:
+            0xffe24b,
+        roughness:
+            0.55,
+        metalness:
+            0.02,
+        side:
+            THREE.DoubleSide
+    });
+const geometriaTallo =
+    new THREE.CylinderGeometry(
+        0.045,
+        0.07,
+        2.3,
+        12
+    );
+geometriaTallo.translate(
+    0,
+    1.15,
+    0
+);
+const materialTallo =
+    new THREE.MeshStandardMaterial({
+        color:
+            0x315b2d,
+        roughness:
+            0.8
+    });
+const geometriaHoja =
+    new THREE.PlaneGeometry(
+        0.55,
+        1.7,
+        8,
+        12
+    );
+const hojaPos =
+    geometriaHoja.attributes.position;
+const hojaUV =
+    geometriaHoja.attributes.uv;
+for (
+    let i = 0;
+    i < hojaPos.count;
+    i++
+) {
+    const v =
+        hojaUV.getY(i);
+    hojaPos.setZ(
+        i,
+        Math.sin(
+            v * Math.PI
+        ) * 0.18
+    );
+}
+geometriaHoja.computeVertexNormals();
+const materialHoja =
+    new THREE.MeshStandardMaterial({
+        map:
+            texturaHoja,
+        roughness:
+            0.75,
+        side:
+            THREE.DoubleSide
+    });
+const geometriaCentro =
+    new THREE.SphereGeometry(
+        0.25,
+        20,
+        20
+    );
+const materialCentro =
+    new THREE.MeshStandardMaterial({
+        color:
+            0x754218,
+        roughness:
+            0.9
+    });
+function crearTulipan() {
+    const grupo =
+        new THREE.Group();
+    const tallo =
+        new THREE.Mesh(
+            geometriaTallo,
+            materialTallo
+        );
+    grupo.add(
+        tallo
+    );
+    for (
+        let i = 0;
+        i < 2;
+        i++
+    ) {
+        const hoja =
+            new THREE.Mesh(
+                geometriaHoja,
+                materialHoja
+            );
+        hoja.position.y =
+            0.35;
+        hoja.rotation.y =
+            i * Math.PI;
+        hoja.rotation.z =
+            i === 0
+                ? -0.45
+                : 0.45;
+        grupo.add(
+            hoja
+        );
+    }
+    const cabeza =
+        new THREE.Group();
+    cabeza.position.y =
+        2.2;
+    grupo.add(
+        cabeza
+    );
+    const petalos = [];
+    for (
+        let i = 0;
+        i < 6;
+        i++
+    ) {
+        const petalo =
+            new THREE.Mesh(
+                geometriaPetalo,
+                materialPetalo
+            );
+        const angulo =
+            (i / 6) *
+            Math.PI *
+            2;
+        petalo.rotation.y =
+            angulo;
+        petalo.rotation.x =
+            0.18 +
+            (i % 2) * 0.08;
+        petalo.position.x =
+            Math.sin(
+                angulo
+            ) * 0.12;
+        petalo.position.z =
+            Math.cos(
+                angulo
+            ) * 0.12;
+        cabeza.add(
+            petalo
+        );
+        petalos.push(
+            petalo
+        );
+    }
+    const centro =
+        new THREE.Mesh(
+            geometriaCentro,
+            materialCentro
+        );
+    centro.position.y =
+        0.1;
+    cabeza.add(
+        centro
+    );
+    grupo.userData.petalos =
+        petalos;
+    return grupo;
+}
+const florPrincipal =
+    crearTulipan();
+florPrincipal.position.set(
+    0,
+    0,
+    -3.8
+);
+florPrincipal.scale.setScalar(
+    1.35
+);
+scene.add(
+    florPrincipal
+);
+const flores = [];
+function agregarFlor(
+    x,
+    z,
+    escala,
+    rotacion = 0
+) {
+    const flor =
+        crearTulipan();
+    flor.position.set(
+        x,
+        0,
+        z
+    );
+    flor.scale.setScalar(
+        escala
+    );
+    flor.rotation.y =
+        rotacion;
+    scene.add(
+        flor
+    );
+    flores.push(
+        flor
+    );
+}
+agregarFlor(
+    -3.0,
+    -4.7,
+    0.82,
+    0.3
+);
+agregarFlor(
+    3.0,
+    -4.9,
+    0.78,
+    -0.4
+);
+agregarFlor(
+    -5.0,
+    -5.8,
+    0.68,
+    0.7
+);
+agregarFlor(
+    4.8,
+    -6.1,
+    0.73,
+    -0.7
+);
+agregarFlor(
+    -6.3,
+    -7.0,
+    0.60,
+    0.2
+);
+agregarFlor(
+    6.0,
+    -7.3,
+    0.64,
+    -0.3
+);
+agregarFlor(
+    -2.1,
+    -6.7,
+    0.66,
+    0.5
+);
+agregarFlor(
+    2.0,
+    -7.1,
+    0.61,
+    -0.5
+);
+agregarFlor(
+    -4.2,
+    -8.2,
+    0.58
+);
+agregarFlor(
+    3.9,
+    -8.4,
+    0.62
+);
+agregarFlor(
+    -6.0,
+    -9.1,
+    0.54
+);
+agregarFlor(
+    5.8,
+    -9.3,
+    0.56
+);
+agregarFlor(
+    -2.9,
+    -9.5,
+    0.53
+);
+agregarFlor(
+    1.8,
+    -9.8,
+    0.50
+);
+agregarFlor(
+    -5.1,
+    -10.5,
+    0.48
+);
+agregarFlor(
+    4.7,
+    -10.8,
+    0.50
+);
+agregarFlor(
+    -1.0,
+    -11.2,
+    0.48
+);
+agregarFlor(
+    2.9,
+    -11.6,
+    0.46
+);
+agregarFlor(
+    -6.5,
+    -12.3,
+    0.43
+);
+agregarFlor(
+    -3.9,
+    -12.7,
+    0.44
+);
+agregarFlor(
+    0.2,
+    -12.9,
+    0.42
+);
+agregarFlor(
+    4.1,
+    -13.2,
+    0.43
+);
+agregarFlor(
+    6.7,
+    -13.8,
+    0.40
+);
+agregarFlor(
+    -5.6,
+    -14.5,
+    0.38
+);
+agregarFlor(
+    -2.2,
+    -14.7,
+    0.39
+);
+agregarFlor(
+    2.0,
+    -14.8,
+    0.37
+);
+agregarFlor(
+    5.0,
+    -15.1,
+    0.36
+);
+agregarFlor(
+    -6.7,
+    -16.0,
+    0.34
+);
+agregarFlor(
+    -3.6,
+    -16.4,
+    0.34
+);
+agregarFlor(
+    0.0,
+    -16.6,
+    0.32
+);
+agregarFlor(
+    3.5,
+    -16.8,
+    0.32
+);
+agregarFlor(
+    6.5,
+    -17.4,
+    0.30
+);
+for (
+    let i = 0;
+    i < 80;
+    i++
+) {
+    const z =
+        -5.0 -
+        Math.random() * 24;
+    const profundidad =
+        Math.abs(
+            z + 5
+        );
+    const ancho =
+        4.5 +
+        profundidad * 0.22;
+    const x =
+        (
+            Math.random() - 0.5
+        ) * ancho;
+    const escalaBase =
+        Math.max(
+            0.18,
+            0.72 -
+            profundidad * 0.020
+        );
+    const escala =
+        escalaBase *
+        (
+            0.72 +
+            Math.random() * 0.42
+        );
+    agregarFlor(
+        x,
+        z,
+        escala,
+        Math.random() *
+        Math.PI *
+        2
+    );
+}
+for (
+    let i = 0;
+    i < 35;
+    i++
+) {
+    const z =
+        -8 -
+        Math.random() * 22;
+    const lado =
+        Math.random() > 0.5
+            ? 1
+            : -1;
+    const x =
+        lado *
+        (
+            5.5 +
+            Math.random() * 3.5
+        );
+    const escala =
+        0.20 +
+        Math.random() * 0.30;
+    agregarFlor(
+        x,
+        z,
+        escala,
+        Math.random() *
+        Math.PI *
+        2
+    );
+}
+agregarFlor(-5.8, -5.0, 0.58, 0.2);
+agregarFlor(5.7, -5.2, 0.58, -0.2);
+agregarFlor(-6.8, -6.5, 0.55, 0.5);
+agregarFlor(6.6, -6.8, 0.55, -0.5);
+agregarFlor(-7.5, -8.2, 0.50, 0.3);
+agregarFlor(7.3, -8.0, 0.52, -0.3);
+agregarFlor(-8.2, -9.8, 0.46, 0.6);
+agregarFlor(8.0, -10.2, 0.48, -0.6);
+agregarFlor(-8.8, -11.8, 0.42, 0.4);
+agregarFlor(8.7, -12.2, 0.44, -0.4);
+agregarFlor(-9.2, -13.8, 0.38, 0.2);
+agregarFlor(9.1, -14.0, 0.40, -0.2);
+agregarFlor(-9.8, -15.8, 0.34, 0.5);
+agregarFlor(9.7, -16.2, 0.35, -0.5);
+agregarFlor(-10.2, -18.0, 0.30, 0.3);
+agregarFlor(10.0, -18.4, 0.32, -0.3);
+agregarFlor(-10.5, -20.0, 0.27, 0.6);
+agregarFlor(10.4, -20.5, 0.28, -0.6);
+agregarFlor(-2.0, -3.7, 0.43, 0.3);
+agregarFlor(-1.35, -4.15, 0.34, -0.2);
+agregarFlor(-0.75, -4.35, 0.29, 0.4);
+agregarFlor(1.9, -3.8, 0.42, -0.3);
+agregarFlor(1.25, -4.20, 0.33, 0.2);
+agregarFlor(0.65, -4.45, 0.27, -0.4);
+agregarFlor(-2.7, -4.7, 0.38, 0.5);
+agregarFlor(-1.9, -5.0, 0.31, -0.4);
+agregarFlor(-1.1, -5.15, 0.27, 0.3);
+agregarFlor(2.65, -4.8, 0.37, -0.5);
+agregarFlor(1.9, -5.05, 0.31, 0.4);
+agregarFlor(1.1, -5.25, 0.26, -0.3);
+agregarFlor(-3.5, -3.0, 0.32, 0.4);
+agregarFlor(-2.8, -3.25, 0.27, -0.3);
+agregarFlor(2.9, -3.1, 0.31, -0.4);
+agregarFlor(3.6, -3.0, 0.27, 0.3);
+agregarFlor(-4.3, -3.8, 0.30, 0.5);
+agregarFlor(4.2, -3.9, 0.29, -0.5);
+agregarFlor(-4.8, -4.8, 0.34, 0.2);
+agregarFlor(-5.3, -5.6, 0.29, -0.4);
+agregarFlor(4.7, -4.9, 0.33, -0.2);
+agregarFlor(5.2, -5.7, 0.28, 0.4);
+for (
+    let i = 0;
+    i < 35;
+    i++
+) {
+    const lado =
+        Math.random() < 0.5
+            ? -1
+            : 1;
+    const x =
+        lado *
+        (
+            5.5 +
+            Math.random() * 5.5
+        );
+    const z =
+        -5 -
+        Math.random() * 17;
+    const escala =
+        0.20 +
+        Math.random() * 0.28;
+    agregarFlor(
+        x,
+        z,
+        escala,
+        Math.random() *
+        Math.PI *
+        2
+    );
+}
+const hierbaMaterial =
+    new THREE.MeshStandardMaterial({
+        color:
+            0x294c27,
+        side:
+            THREE.DoubleSide,
+        transparent:
+            true,
+        opacity:
+            0.8
+    });
+const hierbaGeo =
+    new THREE.PlaneGeometry(
+        0.09,
+        0.65
+    );
+const hierbas = [];
+for (
+    let i = 0;
+    i < 230;
+    i++
+) {
+    const grupo =
+        new THREE.Group();
+    grupo.position.set(
+        (
+            Math.random() - 0.5
+        ) * 24,
+        0,
+        -2 -
+        Math.random() * 27
+    );
+    for (
+        let j = 0;
+        j < 4;
+        j++
+    ) {
+        const blade =
+            new THREE.Mesh(
+                hierbaGeo,
+                hierbaMaterial
+            );
+        blade.position.x =
+            (
+                Math.random() - 0.5
+            ) * 0.3;
+        blade.rotation.y =
+            Math.random() *
+            Math.PI;
+        blade.rotation.z =
+            (
+                Math.random() - 0.5
+            ) * 0.5;
+        grupo.add(
+            blade
+        );
+    }
+    scene.add(
+        grupo
+    );
+    hierbas.push(
+        grupo
+    );
+}
+const luciernagas = [];
+function crearLuciernaga() {
+    const grupo =
+        new THREE.Group();
+    const nucleo =
+        new THREE.Mesh(
+            new THREE.SphereGeometry(
+                0.045,
+                8,
+                8
+            ),
+            new THREE.MeshBasicMaterial({
+                color:
+                    0xffe96b,
+                transparent:
+                    true,
+                opacity:
+                    0.95
+            })
+        );
+    const halo =
+        new THREE.Mesh(
+            new THREE.SphereGeometry(
+                0.16,
+                8,
+                8
+            ),
+            new THREE.MeshBasicMaterial({
+                color:
+                    0xffd84d,
+                transparent:
+                    true,
+                opacity:
+                    0.10,
+                depthWrite:
+                    false,
+                blending:
+                    THREE.AdditiveBlending
+            })
+        );
+    grupo.add(
+        halo
+    );
+    grupo.add(
+        nucleo
+    );
+    grupo.position.set(
+        (
+            Math.random() - 0.5
+        ) * 22,
+        0.25 +
+        Math.random() * 5.5,
+        -3 -
+        Math.random() * 27
+    );
+    grupo.userData = {
+        fase:
+            Math.random() *
+            Math.PI *
+            2,
+        velocidad:
+            0.15 +
+            Math.random() * 0.3,
+        baseX:
+            grupo.position.x,
+        baseY:
+            grupo.position.y,
+        baseZ:
+            grupo.position.z,
+        amplitud:
+            0.4 +
+            Math.random() * 0.8
+    };
+    scene.add(
+        grupo
+    );
+    return grupo;
+}
+for (
+    let i = 0;
+    i < 230;
+    i++
+) {
+    luciernagas.push(
+        crearLuciernaga()
+    );
+}
+const corrientesLuz = [];
+function crearCorrienteLuz(
+    x,
+    z,
+    cantidad,
+    ancho,
+    altura
+) {
+    const grupo =
+        new THREE.Group();
+    grupo.position.set(
+        x,
+        0,
+        z
+    );
+    for (
+        let i = 0;
+        i < cantidad;
+        i++
+    ) {
+        const punto =
+            new THREE.Mesh(
+                new THREE.SphereGeometry(
+                    0.035 +
+                    Math.random() * 0.035,
+                    6,
+                    6
+                ),
+                new THREE.MeshBasicMaterial({
+                    color:
+                        0xffe86a,
+                    transparent:
+                        true,
+                    opacity:
+                        0.5 +
+                        Math.random() * 0.5,
+                    blending:
+                        THREE.AdditiveBlending,
+                    depthWrite:
+                        false
+                })
+            );
+        const progreso =
+            i / cantidad;
+        punto.position.x =
+            (
+                progreso - 0.5
+            ) * ancho;
+        punto.position.y =
+            altura +
+            Math.sin(
+                progreso *
+                Math.PI *
+                3
+            ) * 0.6 +
+            (
+                Math.random() - 0.5
+            ) * 0.5;
+        punto.position.z =
+            (
+                Math.random() - 0.5
+            ) * 1.5;
+        punto.userData = {
+            fase:
+                Math.random() *
+                Math.PI *
+                2,
+            velocidad:
+                0.4 +
+                Math.random() * 0.8
+        };
+        grupo.add(
+            punto
+        );
+    }
+    scene.add(
+        grupo
+    );
+    corrientesLuz.push(
+        grupo
+    );
+}
+crearCorrienteLuz(
+    -5,
+    -19,
+    55,
+    8,
+    2.0
+);
+crearCorrienteLuz(
+    0,
+    -24,
+    70,
+    12,
+    3.2
+);
+crearCorrienteLuz(
+    6,
+    -21,
+    50,
+    7,
+    1.8
+);
+crearCorrienteLuz(
+    -1,
+    -31,
+    80,
+    17,
+    4.5
+);
+const petalosAmbiente = [];
+for (
+    let i = 0;
+    i < 55;
+    i++
+) {
+    const petalo =
+        new THREE.Mesh(
+            geometriaPetalo,
+            materialPetalo
+        );
+    petalo.scale.setScalar(
+        0.12 +
+        Math.random() * 0.15
+    );
+    petalo.position.set(
+        (
+            Math.random() - 0.5
+        ) * 22,
+        0.5 +
+        Math.random() * 7,
+        -2 -
+        Math.random() * 27
+    );
+    petalo.userData = {
+        fase:
+            Math.random() *
+            Math.PI *
+            2,
+        velocidad:
+            0.002 +
+            Math.random() * 0.004
+    };
+    scene.add(
+        petalo
+    );
+    petalosAmbiente.push(
+        petalo
+    );
+}
+let petaloCaido = null;
+function quitarPetalo() {
+    const disponibles =
+        florPrincipal
+            .userData
+            .petalos
+            .filter(
+                p => p.visible
+            );
+    if (
+        disponibles.length === 0
+    ) {
+        iniciarFinal();
+        return;
+    }
+    const petalo =
+        disponibles[
+            disponibles.length - 1
+        ];
+    const posicion =
+        new THREE.Vector3();
+    petalo.getWorldPosition(
+        posicion
+    );
+    florPrincipal.remove(
+        petalo
+    );
+    scene.add(
+        petalo
+    );
+    petalo.position.copy(
+        posicion
+    );
+    petalo.userData.caida =
+        true;
+    petalo.userData.vy =
+        0.009 +
+        Math.random() * 0.006;
+    petalo.userData.vx =
+        (
+            Math.random() - 0.5
+        ) * 0.006;
+    petalo.userData.vz =
+        0.002 +
+        Math.random() * 0.004;
+    petalo.userData.rot =
+        (
+            Math.random() - 0.5
+        ) * 0.035;
+    petaloCaido =
+        petalo;
+    crearEstrellaFugaz();
+    mostrarFrase();
+}
+let estrellaFugaz = null;
+function crearEstrellaFugaz() {
+    if (estrellaFugaz) {
+        scene.remove(
+            estrellaFugaz
+        );
+    }
+    const grupo =
+        new THREE.Group();
+    const cabeza =
+        new THREE.Mesh(
+            new THREE.SphereGeometry(
+                0.1,
+                12,
+                12
+            ),
+            new THREE.MeshBasicMaterial({
+                color:
+                    0xffffff
+            })
+        );
+    grupo.add(
+        cabeza
+    );
+    const puntos = [];
+    for (
+        let i = 0;
+        i < 25;
+        i++
+    ) {
+        puntos.push(
+            new THREE.Vector3(
+                -i * 0.18,
+                i * 0.085,
+                0
+            )
+        );
+    }
+    const geo =
+        new THREE.BufferGeometry()
+            .setFromPoints(
+                puntos
+            );
+    const mat =
+        new THREE.LineBasicMaterial({
+            color:
+                0xffd9ef,
+            transparent:
+                true,
+            opacity:
+                0.95
+        });
+    const cola =
+        new THREE.Line(
+            geo,
+            mat
+        );
+    grupo.add(
+        cola
+    );
+    grupo.position.set(
+        7,
+        10,
+        -14
+    );
+    grupo.userData.progreso =
+        0;
+    scene.add(
+        grupo
+    );
+    estrellaFugaz =
+        grupo;
+}
+function crearCorazon() {
+    const posiciones = [];
+    const cantidad = 900;
+    for (
+        let i = 0;
+        i < cantidad;
+        i++
+    ) {
+        const t =
+            Math.random() *
+            Math.PI *
+            2;
+        const escala =
+            0.75 +
+            Math.random() * 0.3;
+        const x =
+            16 *
+            Math.pow(
+                Math.sin(t),
+                3
+            );
+        const y =
+            13 * Math.cos(t)
+            -
+            5 * Math.cos(2 * t)
+            -
+            2 * Math.cos(3 * t)
+            -
+            Math.cos(4 * t);
+        posiciones.push(
+            x *
+            0.16 *
+            escala,
+            y *
+            0.16 *
+            escala +
+            5,
+            -11 +
+            (
+                Math.random() - 0.5
+            ) * 1.5
+        );
+    }
+    const geo =
+        new THREE.BufferGeometry();
+    geo.setAttribute(
+        "position",
+        new THREE.Float32BufferAttribute(
+            posiciones,
+            3
+        )
+    );
+    const mat =
+        new THREE.PointsMaterial({
+            color:
+                0xff91d1,
+            size:
+                0.11,
+            transparent:
+                true,
+            opacity:
+                0,
+            depthWrite:
+                false,
+            blending:
+                THREE.AdditiveBlending
+        });
+    const puntos =
+        new THREE.Points(
+            geo,
+            mat
+        );
+    puntos.scale.setScalar(
+        0.01
+    );
+    scene.add(
+        puntos
+    );
+    return puntos;
+}
+const corazon =
+    crearCorazon();
+let audioContext = null;
+let master = null;
+function iniciarAudio() {
+    if (audioContext) {
+        if (audioContext.state === "suspended") audioContext.resume();
+        return;
+    }
+    const AudioContext =
+        window.AudioContext ||
+        window.webkitAudioContext;
+    if (!AudioContext) return;
+    audioContext = new AudioContext();
+    master = audioContext.createGain();
+    master.gain.value = 0.35;
+    master.connect(audioContext.destination);
+}
+function iniciarMusica() {
+    musicaPersonal.volume = 0;
+    musicaPersonal.currentTime = 0;
+    const promesa = musicaPersonal.play();
+    if (promesa) {
+        promesa.catch(() => {});
+    }
+    const inicio = performance.now();
+    const duracion = 2800;
+    function subirVolumen(ahora) {
+        const progreso = Math.min((ahora - inicio) / duracion, 1);
+        musicaPersonal.volume = 0.45 * (progreso * progreso * (3 - 2 * progreso));
+        if (progreso < 1) requestAnimationFrame(subirVolumen);
+    }
+    requestAnimationFrame(subirVolumen);
+}
+function sonidoPetalo() {
+    if (!audioContext || !master) return;
+    const ahora =
+        audioContext.currentTime;
+    const osc =
+        audioContext
+            .createOscillator();
+    const gain =
+        audioContext
+            .createGain();
+    osc.type =
+        "sine";
+    osc.frequency.setValueAtTime(
+        620,
+        ahora
+    );
+    osc.frequency
+        .exponentialRampToValueAtTime(
+            900,
+            ahora + 0.25
+        );
+    gain.gain.setValueAtTime(
+        0.0001,
+        ahora
+    );
+    gain.gain
+        .exponentialRampToValueAtTime(
+            0.07,
+            ahora + 0.025
+        );
+    gain.gain
+        .exponentialRampToValueAtTime(
+            0.0001,
+            ahora + 0.5
+        );
+    osc.connect(
+        gain
+    );
+    gain.connect(
+        master
+    );
+    osc.start(
+        ahora
+    );
+    osc.stop(
+        ahora + 0.5
+    );
+}
+let entrada = 0;
+let entrando = false;
+function iniciarEntrada() {
+    entrada = 0;
+    veloJardin.material.opacity = 0.98;
+    entrando = true;
+    tierraGrupo.visible =
+        true;
+    tierraGrupo.position.set(
+        0,
+        2.2,
+        -3.5
+    );
+    tierraGrupo.scale.setScalar(
+        1
+    );
+    camera.position.set(
+        0,
+        2.2,
+        11
+    );
+    camera.lookAt(
+        0,
+        2.2,
+        -3.5
+    );
+}
+botonEstrella.addEventListener(
+    "click",
+    () => {
+        if (
+            finalIniciado
+        ) {
+            return;
+        }
+        botonEstrella.classList.remove(
+            "pulsando"
+        );
+        void botonEstrella.offsetWidth;
+        botonEstrella.classList.add(
+            "pulsando"
+        );
+        sonidoPetalo();
+        quitarPetalo();
+    }
+);
+function mostrarFrase() {
+    if (
+        indiceFrase >=
+        frases.length
+    ) {
+        iniciarFinal();
+        return;
+    }
+    textoFrase.textContent =
+        frases[indiceFrase];
+    mensaje.classList.remove(
+        "visible"
+    );
+    void mensaje.offsetWidth;
+    mensaje.classList.add(
+        "visible"
+    );
+    indiceFrase++;
+    contador.textContent =
+        `${indiceFrase} / ${frases.length}`;
+    if (
+        indiceFrase >=
+        frases.length
+    ) {
+        setTimeout(
+            () => {
+                botonEstrella.classList.remove(
+                    "visible"
+                );
+                setTimeout(
+                    iniciarFinal,
+                    4000
+                );
+            },
+            3500
+        );
+    }
+}
+function iniciarFinal() {
+    if (
+        finalIniciado
+    ) {
+        return;
+    }
+    finalIniciado =
+        true;
+    mensaje.classList.remove(
+        "visible"
+    );
+    botonEstrella.classList.remove(
+        "visible"
+    );
+    contador.classList.remove(
+        "visible"
+    );
+    setTimeout(
+        () => {
+            final.classList.add(
+                "visible"
+            );
+            const inicio =
+                performance.now();
+            function animarCorazon(
+                ahora
+            ) {
+                const p =
+                    Math.min(
+                        (
+                            ahora -
+                            inicio
+                        ) / 3500,
+                        1
+                    );
+                const suave =
+                    1 -
+                    Math.pow(
+                        1 - p,
+                        3
+                    );
+                corazon.scale.setScalar(
+                    suave
+                );
+                corazon.material.opacity =
+                    suave;
+                corazon.rotation.z =
+                    Math.sin(
+                        ahora * 0.0005
+                    ) * 0.03;
+                if (
+                    p < 1
+                ) {
+                    requestAnimationFrame(
+                        animarCorazon
+                    );
+                }
+            }
+            requestAnimationFrame(
+                animarCorazon
+            );
+        },
+        1000
+    );
+}
+const reloj =
+    new THREE.Clock();
+
+// --- Refuerzo de iluminación lunar sobre el paisaje ---
+const luzLunaPaisaje = new THREE.DirectionalLight(0x9bbcff, 1.15);
+luzLunaPaisaje.position.set(-5, 9, 5);
+luzLunaPaisaje.target.position.set(0, 0, -5);
+scene.add(luzLunaPaisaje);
+scene.add(luzLunaPaisaje.target);
+
+const luzHorizonteLunar = new THREE.HemisphereLight(0x526da8, 0x10140d, 0.42);
+scene.add(luzHorizonteLunar);
+
+const brilloLunaJardin = new THREE.PointLight(0xa9c7ff, 0.55, 18, 2);
+brilloLunaJardin.position.set(-1.5, 5.5, 1.5);
+scene.add(brilloLunaJardin);
+
+
+// --- Estrellas fugaces: cola luminosa y brillo atmosférico ---
+function crearColaEstrellaFugaz(posicion, direccion, longitud = 3.2) {
+    const puntos = [];
+    const pasos = 18;
+    for (let i = 0; i <= pasos; i++) {
+        const t = i / pasos;
+        puntos.push(new THREE.Vector3(
+            posicion.x - direccion.x * longitud * t,
+            posicion.y - direccion.y * longitud * t,
+            posicion.z - direccion.z * longitud * t
+        ));
+    }
+
+    const geometriaCola = new THREE.BufferGeometry().setFromPoints(puntos);
+    const materialCola = new THREE.LineBasicMaterial({
+        color: 0xffffff,
+        transparent: true,
+        opacity: 0.0,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false
+    });
+
+    const cola = new THREE.Line(geometriaCola, materialCola);
+    scene.add(cola);
+
+    const luz = new THREE.PointLight(0xbfd8ff, 0, 7, 2);
+    luz.position.copy(posicion);
+    scene.add(luz);
+
+    return { cola, luz, material: materialCola };
+}
+
+function animate() {
+    requestAnimationFrame(
+        animate
+    );
+    const tiempo =
+        reloj.getElapsedTime();
+if (entrando) {
+    entrada += 0.016 / 4;
+    const p = Math.min(entrada, 1);
+    const suave = p * p * (3 - 2 * p);
+    tierraGrupo.scale.setScalar(1 + suave * 10);
+    tierraGrupo.rotation.y += 0.002;
+    camera.position.z = 11 - suave * 9.2;
+    camera.position.y = 2.2 - suave * 0.15;
+    veloJardin.material.opacity = 0.98 * (1 - suave);
+    camera.lookAt(0, 2.2, -3.5);
+    if (p >= 1) {
+        entrando = false;
+        tierraGrupo.visible = false;
+        veloJardin.material.opacity = 0;
+        camera.position.set(0, 2.05, 1.8);
+        camera.lookAt(0, 2.35, -4.8);
+        botonEstrella.classList.add("visible");
+        contador.classList.add("visible");
+        contador.textContent = `0 / ${frases.length}`;
+    }
+}
+if (iniciado && !entrando) {
+    camera.position.x = Math.sin(tiempo * 0.22) * 0.10;
+    camera.position.y =
+        2.05 +
+        Math.sin(tiempo * 0.55) * 0.035;
+    camera.position.z = 1.8;
+    camera.lookAt(0, 2.35, -4.8);
+}
+    if (
+        iniciado &&
+        !entrando
+    ) {
+        florPrincipal.rotation.z =
+            -0.025 +
+            Math.sin(
+                tiempo * 0.7
+            ) * 0.025;
+        flores.forEach(
+            (
+                flor,
+                i
+            ) => {
+                flor.rotation.z =
+                    Math.sin(
+                        tiempo * 0.55 +
+                        i
+                    ) * 0.025;
+            }
+        );
+        hierbas.forEach(
+            (
+                hierba,
+                i
+            ) => {
+                hierba.rotation.z =
+                    Math.sin(
+                        tiempo * 1.2 +
+                        i
+                    ) * 0.025;
+            }
+        );
+    }
+    if (
+        petaloCaido &&
+        petaloCaido.userData.caida
+    ) {
+        const p =
+            petaloCaido;
+        p.position.y -=
+            p.userData.vy;
+        p.position.x +=
+            p.userData.vx;
+        p.position.z +=
+            p.userData.vz;
+        p.rotation.x +=
+            p.userData.rot;
+        p.rotation.y +=
+            0.018;
+        if (
+            p.position.y < -0.2
+        ) {
+            p.visible =
+                false;
+            petaloCaido =
+                null;
+        }
+    }
+    luciernagas.forEach(
+        (luci) => {
+            const d =
+                luci.userData;
+            luci.position.x =
+                d.baseX +
+                Math.sin(
+                    tiempo *
+                    d.velocidad +
+                    d.fase
+                ) *
+                d.amplitud;
+            luci.position.y =
+                d.baseY +
+                Math.sin(
+                    tiempo * 0.7 +
+                    d.fase
+                ) *
+                0.45;
+            luci.position.z =
+                d.baseZ +
+                Math.cos(
+                    tiempo * 0.5 +
+                    d.fase
+                ) *
+                0.45;
+            const brillo =
+                0.45 +
+                0.55 *
+                (
+                    0.5 +
+                    0.5 *
+                    Math.sin(
+                        tiempo * 3 +
+                        d.fase
+                    )
+                );
+            luci.children[1]
+                .material
+                .opacity =
+                brillo;
+            luci.children[0]
+                .material
+                .opacity =
+                brillo * 0.12;
+            const tamaño =
+                0.75 +
+                brillo * 0.45;
+            luci.children[0]
+                .scale
+                .setScalar(
+                    tamaño
+                );
+        }
+    );
+    corrientesLuz.forEach(
+        (
+            corriente,
+            indice
+        ) => {
+            corriente.children.forEach(
+                (
+                    punto,
+                    i
+                ) => {
+                    const d =
+                        punto.userData;
+                    punto.position.y +=
+                        Math.sin(
+                            tiempo *
+                            d.velocidad +
+                            d.fase +
+                            i * 0.04
+                        ) *
+                        0.002;
+                    punto.position.x +=
+                        Math.sin(
+                            tiempo * 0.25 +
+                            d.fase
+                        ) *
+                        0.0007;
+                    const brillo =
+                        0.35 +
+                        0.65 *
+                        (
+                            0.5 +
+                            0.5 *
+                            Math.sin(
+                                tiempo * 2.5 +
+                                d.fase
+                            )
+                        );
+                    punto.material.opacity =
+                        brillo;
+                }
+            );
+            corriente.position.x =
+                Math.sin(
+                    tiempo * 0.08 +
+                    indice
+                ) * 0.4;
+        }
+    );
+    petalosAmbiente.forEach(
+        (p) => {
+            p.position.y -=
+                p.userData.velocidad;
+            p.position.x +=
+                Math.sin(
+                    tiempo +
+                    p.userData.fase
+                ) * 0.002;
+            p.rotation.z +=
+                0.006;
+            if (
+                p.position.y < 0.1
+            ) {
+                p.position.y =
+                    7;
+                p.position.x =
+                    (
+                        Math.random() - 0.5
+                    ) * 22;
+            }
+        }
+    );
+    if (
+        estrellaFugaz
+    ) {
+        estrellaFugaz.position.x -=
+            0.085;
+        estrellaFugaz.position.y -=
+            0.043;
+        estrellaFugaz.userData.progreso +=
+            0.012;
+        estrellaFugaz.children[1]
+            .material
+            .opacity =
+            1 -
+            estrellaFugaz.userData.progreso;
+        if (
+            estrellaFugaz.userData.progreso >=
+            1
+        ) {
+            scene.remove(
+                estrellaFugaz
+            );
+            estrellaFugaz =
+                null;
+        }
+    }
+    estrellas.rotation.y +=
+        0.000018;
+    estrellasGrandes.rotation.y +=
+        0.000008;
+    estrellasGrandes.children.forEach(
+        (
+            estrella,
+            i
+        ) => {
+            estrella.material.opacity =
+                0.50 +
+                0.45 *
+                (
+                    0.5 +
+                    0.5 *
+                    Math.sin(
+                        tiempo *
+                        estrella.userData.velocidad +
+                        estrella.userData.fase
+                    )
+                );
+        }
+    );
+    luna.rotation.y +=
+        0.00015;
+    luzLunarSuelo.intensity =
+        2.0 +
+        Math.sin(
+            tiempo * 0.12
+        ) * 0.12;
+    luzCalida.intensity =
+        2.15 +
+        Math.sin(
+            tiempo * 1.2
+        ) * 0.35;
+    renderer.render(
+        scene,
+        camera
+    );
+}
+animate();
+window.addEventListener(
+    "resize",
+    () => {
+        camera.aspect =
+            window.innerWidth /
+            window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(
+            window.innerWidth,
+            window.innerHeight
+        );
+        renderer.setPixelRatio(
+            Math.min(
+                window.devicePixelRatio,
+                1.6
+            )
+        );
+    }
+);
+</script>
+</body>
+</html>
